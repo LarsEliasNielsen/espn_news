@@ -129,10 +129,10 @@
 
       // Create li item with content.
       $items[] = array(
-        'data' => '<span class="headline">' . $espn_news_headline . '</span>' .
+        'data' => '<h3 class="headline">' . $espn_news_headline . '</h3>' .
           '<span class="datetime">' . $espn_news_datetime . '</span>' .
-          '<span class="teaser"><p>' . $espn_news_teaser . '</p></span>' .
-          '<span class="description"><p>' . $espn_news_description . '</p></span>',
+          '<div class="teaser"><p>' . $espn_news_teaser . '</p></div>' .
+          '<div class="description"><p>' . $espn_news_description . '</p></div>',
         'id' => 'news-' . $news_id,
       );
 
