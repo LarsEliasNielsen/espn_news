@@ -1,0 +1,254 @@
+<?php
+  /**
+   * @file
+   * Creates block and configuration to ESPN News module.
+   * The module uses ESPNs open REST API to fetch recent sport news, and 
+   * displays then in a block.
+   * All rights reserved for ESPN Developer API (2014), for news content.
+   *
+   * @author Lars Nielsen <larn@tv2.dk>
+   */
+
+  /**
+   * Implements hook_help().
+   *
+   * You can add documentation and help here (in admin/help#espn_news). This
+   * documentation can help the users use and extend you module.
+   *
+   * @url: https://api.drupal.org/api/drupal/modules!help!help.api.php/function/hook_help/7
+   */
+  function espn_news_help($path, $arg) {
+    switch ($path) {
+      case 'admin/setting/espn_news':
+        return t('This module displays a block which shows a list recent ESPN sport news..');
+
+      case 'admin/help#espn_news';
+        $output = '<h2>' . t('About') . '</h2>';
+        $output .= '<p>' . t('Displays recent sport news from ESPN.') . '</p>';
+        $output .= '<p>' . t('The news is fetched with ESPNs open REST API, all rights reserved to ESPN (2014).') . '</p>';
+        return $output;
+    }
+  }
+
+  /**
+   * Implements hook_block_info().
+   * 
+   * Declares a block to provide to Drupal. This can also specify block
+   * configuration settings, like here where the cache is determined be the
+   * user role.
+   *
+   * @url: https://api.drupal.org/api/drupal/modules!block!block.api.php/function/hook_block_info/7
+   */
+  function espn_news_block_info() {
+    $blocks['espn_news'] = array(
+      'info' => t('ESPN News'),
+      'cache' => DRUPAL_CACHE_PER_ROLE,
+    );
+
+    return $blocks;
+  }
+
+  /**
+   * Implements hook_menu().
+   *
+   * Defines paths to provide page callbacks and menu items for the site.
+   * Here it defines a configuration page with callback to a form, we'll
+   * create later on.
+   *
+   * @url: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_menu/7
+   */
+  function espn_news_menu() {
+    $items = array();
+
+    // Module configuration page.
+    $items['admin/config/content/espn_news'] = array(
+      'title' => 'ESPN News',
+      'description' => 'Configuration for ESPN News module',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('espn_news_form'),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_NORMAL_ITEM,
+    );
+
+    return $items;
+  }
+
+  /*
+   * Custom API content callback.
+   *
+   * This callback is a custom callback to get ESPN news data.
+   * Here we request the data, preprocesses it and creates a list of news. The 
+   * array '$items' contains all the news, we'll display it as a unordered list
+   * later on.
+   *
+   * drupal_http_request: https://api.drupal.org/api/drupal/includes!common.inc/function/drupal_http_request/7
+   * drupal_json_decode: https://api.drupal.org/api/drupal/includes!common.inc/function/drupal_json_decode/7
+   */
+  function espn_news_api_content() {
+
+    // API path.
+    $api_url = 'http://api.espn.com/v1/sports/news/';
+    // Query parameters.
+    $query = $api_url . '?apikey=' . variable_get('espn_news_api_key') . '&limit=' . variable_get('espn_news_limit');
+    // Query options.
+    $options = array(
+      'method' => 'GET',
+      'timeout' => 5,
+      'headers' => array(
+        'Content-Type' => 'application/json; charset=utf-8',
+        // 'Cache-Control' => 'no-cache'
+      ),
+    );
+
+    // Request data.
+    $request = drupal_http_request($query);
+
+    // Convert data into associative array.
+    $result = drupal_json_decode($request->data);
+
+    // Loop through news.
+    foreach($result['headlines'] as $news) {
+
+      // Preprocess raw data.
+      $news_id = $news['id'];
+      $news_headline = $news['headline'];
+      $news_article_href = $news['links']['web']['href'];
+      $news_teaser = $news['linkText'];
+      $news_description = $news['description'];
+      $news_datetime = date('H:i', strtotime($news['lastModified']));
+      // Drupalized data.
+      $espn_news_headline = l($news_headline, $news_article_href, $option = array(
+        'attributes' => array(
+          'class' => 'headline_href',
+          'target' => '_blank',
+        ),
+      ));
+      $espn_news_teaser = $news_teaser;
+      $espn_news_description = $news_description;
+      $espn_news_datetime = $news_datetime;
+
+      // Create li item with content.
+      $items[] = array(
+        'data' => '<span class="headline">' . $espn_news_headline . '</span>' .
+          '<span class="datetime">' . $espn_news_datetime . '</span>' .
+          '<span class="teaser"><p>' . $espn_news_teaser . '</p></span>' .
+          '<span class="description"><p>' . $espn_news_description . '</p></span>',
+        'id' => 'news-' . $news_id,
+      );
+
+      // If no content is found, return fail.
+      if (empty($items)) {
+        $items[] = array(
+          'data' => 'No news available',
+        );
+      }
+
+    }
+
+    return $items;
+
+  }
+
+
+  /**
+   * Implements hook_block_view().
+   *
+   * Creates content for our block. It sets the title for the block, and returns
+   * our news (from our custom callback) as a ul-list, with the id 'espn-news'.
+   *
+   * @url: https://api.drupal.org/api/drupal/modules!block!block.api.php/function/hook_block_view/7
+   */
+  function espn_news_block_view($delta = '') {
+    $block = array();
+
+    switch ($delta) {
+      case 'espn_news':
+        // List attributes.
+        $attributes = array(
+          'id' => 'espn_news',
+        );
+
+        // Set block title.
+        $block['subject'] = t('ESPN News');
+
+        // Get content from API.
+        $items = espn_news_api_content();
+
+        // Print list.
+        $block['content'] = theme('item_list', array(
+          'items' => $items,
+          'type' => 'ul',
+          'attributes' => array(
+            'id' => 'espn-news',
+          ),
+        ));
+        // $block['content'] = 'Hello World';
+
+        return $block;
+    }
+  }
+
+  /**
+   * Implements hook_form().
+   *
+   * Creates a configuration form. See the API reference for info on different
+   * form inputs. Here we only have two textfields.
+   *
+   * From API Reference: https://api.drupal.org/api/drupal/developer!topics!forms_api_reference.html/7
+   *
+   * @url: https://api.drupal.org/api/drupal/modules!node!node.api.php/function/hook_form/7
+   */
+  function espn_news_form($form, &$form_state) {
+    // Fieldset.
+    $form['espn_api'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('ESPN API'),
+      '#weight' => 0,
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+    // Textfield for API key.
+    $form['espn_api']['espn_news_api_key'] = array(
+      '#type' => 'textfield',
+      '#title' => t('ESPN API key'),
+      '#default_value' => variable_get('espn_news_api_key'),
+      '#size' => 40,
+      '#maxlength' => 24,
+      '#description' => t('API from ESPN Developer Center (http://developer.espn.com/apps/mykeys).'),
+      '#required' => TRUE,
+    );
+    // Textfield for limit.
+    $form['espn_api']['espn_news_limit'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Limit'),
+      '#default_value' => variable_get('espn_news_limit', 10),
+      '#size' => 5,
+      '#maxlength' => 2,
+      '#description' => t('Limit number of news articles shown.'),
+      '#required' => TRUE,
+    );
+
+    return system_settings_form($form);
+  }
+
+  /**
+   * Implements hook_validate().
+   *
+   * Validation for configuration form. Since we need a number in the
+   * limit-textfield, we check that the inout is correct.
+   *
+   * @url: https://api.drupal.org/api/drupal/modules!node!node.api.php/function/hook_validate/7
+   */
+  function espn_news_form_validate($form, &$form_state) {
+    // Get current value from input.
+    $espn_news_limit = $form_state['values']['espn_news_limit'];
+
+    // Check that input is a number.
+    if (!is_numeric($espn_news_limit)) {
+      form_set_error('espn_news_limit', t('Limit must be a number.'));
+    }
+    // Check that input is not negative.
+    elseif ($espn_news_limit <= 0) {
+      form_set_error('espn_news_limit', t('Limit must be between 1 and 99.'));
+    }
+  }
