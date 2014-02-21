@@ -137,13 +137,13 @@
         'id' => 'news-' . $news_id,
       );
 
-      // If no content is found, return fail.
-      if (empty($items)) {
-        $items[] = array(
-          'data' => 'No news available',
-        );
-      }
+    }
 
+    // If no content is found, return fail.
+    if (empty($items)) {
+      $items[] = array(
+        'data' => 'No news available',
+      );
     }
 
     return $items;
