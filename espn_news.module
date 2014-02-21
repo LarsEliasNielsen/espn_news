@@ -87,7 +87,7 @@
   function espn_news_api_content() {
 
     // API path.
-    $api_url = 'http://api.espn.com/v1/sports/news/';
+    $api_url = 'http://api.espn.com/v1/sports/' . variable_get('espn_news_sport_category') . 'news/';
     // Query parameters.
     $query = $api_url . '?apikey=' . variable_get('espn_news_api_key') . '&limit=' . variable_get('espn_news_limit');
     // Query options.
@@ -161,6 +161,26 @@
    */
   function espn_news_block_view($delta = '') {
     $block = array();
+    $sport_category = '';
+
+    // Sport category.
+    switch(variable_get('espn_news_sport_category')) {
+      case '': $sport_category = ''; break;
+      case 'baseball/': $sport_category = 'Baseball '; break;
+      case 'basketball/': $sport_category = 'Basketball '; break;
+      case 'boxing/': $sport_category = 'Boxing '; break;
+      case 'football/': $sport_category = 'Football '; break;
+      case 'golf/': $sport_category = 'Golf '; break;
+      case 'hockey/': $sport_category = 'Hockey '; break;
+      case 'horse-racing/': $sport_category = 'Horse Racing '; break;
+      case 'mma/': $sport_category = 'MMA '; break;
+      case 'olympics/': $sport_category = 'Olympics '; break;
+      case 'racing/': $sport_category = 'Racing '; break;
+      case 'soccer/': $sport_category = 'Soccer '; break;
+      case 'tennis/': $sport_category = 'Tennis '; break;
+      case 'action-sport/': $sport_category = 'X Games '; break;
+      default: $sport_category = '';
+    }
 
     switch ($delta) {
       case 'espn_news':
@@ -170,7 +190,7 @@
         );
 
         // Set block title.
-        $block['subject'] = t('ESPN News');
+        $block['subject'] = t('ESPN ' . $sport_category . 'News');
 
         // Get content from API.
         $items = espn_news_api_content();
@@ -227,6 +247,28 @@
       '#maxlength' => 2,
       '#description' => t('Limit number of news articles shown.'),
       '#required' => TRUE,
+    );
+    $form['espn_api']['espn_news_sport_category'] = array(
+      '#type' => 'select',
+      '#title' => t('Sport Category'),
+      '#default_value' => variable_get('espn_news_sport_category'),
+      '#options' => array(
+        '' => t('All'),
+        'baseball/' => t('Baseball'),
+        'basketball/' => t('Basketball'),
+        'boxing/' => t('Boxing'),
+        'football/' => t('Football'),
+        'golf/' => t('Golf'),
+        'hockey/' => t('Hockey'),
+        'horse-racing/' => t('Horse Racing'),
+        'mma/' => t('MMA'),
+        'olympics/' => t('Olympics'),
+        'racing/' => t('Racing'),
+        'soccer/' => t('Soccer'),
+        'tennis/' => t('Tennis'),
+        'action-sports/' => t('X Games'),
+      ),
+      '#description' => t('Choose sport category to fetch content from.'),
     );
 
     return system_settings_form($form);
