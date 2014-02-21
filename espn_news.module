@@ -110,12 +110,13 @@
     foreach($result['headlines'] as $news) {
 
       // Preprocess raw data.
-      $news_id = $news['id'];
-      $news_headline = $news['headline'];
-      $news_article_href = $news['links']['web']['href'];
-      $news_teaser = $news['linkText'];
-      $news_description = $news['description'];
-      $news_datetime = date('H:i', strtotime($news['lastModified']));
+      $news_id = !empty($news['id']) ? $news['id'] : 0;
+      $news_headline = !empty($news['headline']) ? $news['headline'] : 'No title';
+      $news_article_href = !empty($news['links']['web']['href']) ? $news['links']['web']['href'] : 'http://espn.go.com/';
+      $news_teaser = !empty($news['linkText']) ? $news['linkText'] : 'No teaser';
+      $news_description = !empty($news['description']) ? $news['description'] : 'No description';
+      $news_last_modified = !empty($news['lastModified']) ? $news['lastModified'] : 'now';
+      $news_datetime = date('H:i', strtotime($news_last_modified));
       // Drupalized data.
       $espn_news_headline = l($news_headline, $news_article_href, $option = array(
         'attributes' => array(
