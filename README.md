@@ -19,6 +19,7 @@ git clone git@github.com:LarsEliasNielsen/espn_news.git espn_news
 ***Download***
 
 If you don't have SSH access to your site, you can downlaod a ZIP-file containing the module and extract it to you Drupal-site. Download the ZIP from the [ESPN News repository](https://github.com/LarsEliasNielsen/espn_news), and extract it to `<YOUR_SITE>/sites/all/modules/`.
+Rememeber to rename the extracted folder to `espn_news`, if a branch name is added to the folder name.
 
 
 ## Files
