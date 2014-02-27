@@ -1,0 +1,47 @@
+<?php
+  /**
+   * @file
+   * Install, update and uninstall functions for the ESPN News module.
+   *
+   * @author Lars Nielsen <larn@tv2.dk>
+   */
+
+  /**
+   * Implements hook_enable().
+   *
+   * Run initial functionality when module is being enabled.
+   * This should always be implemented in .install and can rely on .module
+   * being loaded.
+   *
+   * @url: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_enable/7
+   */
+  function espn_news_enable() {
+
+    // Set module specific variables.
+    variable_set('espn_news_api_key', '');
+    variable_set('espn_news_limit', 10);
+    variable_set('espn_news_sport_category', '');
+
+    // Display message.
+    drupal_set_message($message = t('Remember to set your API key in the configuration.'), $type = 'warning');
+
+  }
+
+  /**
+   * Implements hook_uninstall().
+   *
+   * Used to remove any module specific variables and tables, if any has been
+   * created or used.
+   * This should always be implemented in .install.
+   *
+   * @url: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_uninstall/7
+   */
+  function espn_news_uninstall() {
+
+    variable_set('espn_news_api_key');
+    variable_set('espn_news_limit');
+    variable_set('espn_news_sport_category');
+
+    drupal_set_message($message = t('Module specific variables removed.'), $type = 'status');
+
+  }
