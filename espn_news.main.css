@@ -1,0 +1,29 @@
+/***** ESPN NEWS STYLES *****/
+#content ul#espn-news {
+  margin: 0;
+  padding: 0;
+}
+#content ul#espn-news li {
+  list-style: none;
+  position: relative;
+  border-top: 1px solid #cdcdcd;
+  padding-bottom: 20px;
+}
+#content ul#espn-news li .headline {
+  font-size: 18px;
+  margin: 0;
+}
+#content ul#espn-news li .datetime {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #c8c8c8;
+  color: #fff;
+  padding: 0px 10px;
+}
+#content ul#espn-news li .teaser {
+  font-weight: bold;
+}
+#content ul#espn-news li .teaser p, .description p {
+  margin: 0;
+}

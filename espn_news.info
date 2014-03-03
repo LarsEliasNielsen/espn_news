@@ -4,5 +4,8 @@ description = Provides a block with recent ESPN sport news.
 core = 7.x
 package = Custom
 
+; Add a style sheet for all media
+stylesheets[all][] = espn_news.main.css
+
 ; Link to configuration page, set in espn_news.module: espn_news_menu()
 configure = admin/config/content/espn_news
