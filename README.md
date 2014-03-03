@@ -30,3 +30,8 @@ This file describes the module to Drupal, and let you customize how your module 
 ***espn_news.module***
 
 This file contains (for this module; all) logic and methods for the module. It specifies a block to Drupal and requests data and prints it.
+
+***espn_news.install****
+
+This file contains a couple of methods, that is run when the module is being installed/enabled/unabled/uninstalled.
+Variables and tables are created/destroyed here.
